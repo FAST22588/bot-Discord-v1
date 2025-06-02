@@ -1,26 +1,30 @@
+# main.py
+
 import discord
 from discord.ext import commands
 import gdown
 import os
 import asyncio
 import time
+from keep_alive import server_on
 
-# ------------------------
-TOKEN = os.environ.get("DISCORD_TOKEN")  # ✅ รับจาก Environment Variable (Render)
-CHANNEL_ID = 1379036193525862460         # ห้องส่งวิดีโอ
-LOG_CHANNEL_ID = 1378977947054247957     # ห้อง log
-COUNTDOWN_TIME = 10  # วินาทีนับถอยหลัง
+TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = 1379036193525862460
+LOG_CHANNEL_ID = 1378977947054247957
+COUNTDOWN_TIME = 10
 
 VIDEOS = {
     "กังฟูแพนด้า": "19p7U285U5KVkY-rHqq8QmApOzxdvc2aE",
     "ไอรอนแมน": "1tc4CwafrbcGHobe5WsVkuSX2jVqP9qxz",
     "เดดพูล": "1ru539tzbxOSe8vkQO677GsyeZBuOwW_a"
 }
-# ------------------------
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+# ==== เรียก Flask Server =====
+server_on()
 
 class DeliveryChoice(discord.ui.View):
     def __init__(self, file_name, title, ctx):
