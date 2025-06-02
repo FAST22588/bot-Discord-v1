@@ -6,7 +6,7 @@ import asyncio
 import time
 
 # ------------------------
-TOKEN = "MTM3ODY1NDQ0MDEzMDg3NTQ3Mw.GpGV1L.pJmfMtz92gQ28HwWvSJvyYWJHaLsb7OzhMEM90"  # แก้ไขตรงนี้เป็น Token จริง
+TOKEN = "TOKEN"  # แก้ไขตรงนี้เป็น Token จริง
 CHANNEL_ID = 1372868979793596417       # ห้องส่งวิดีโอ
 LOG_CHANNEL_ID = 1378977947054247957   # ห้อง log
 COUNTDOWN_TIME = 10  # วินาทีนับถอยหลัง
