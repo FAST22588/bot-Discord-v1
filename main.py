@@ -6,10 +6,10 @@ import asyncio
 import time
 
 # ------------------------
-TOKEN = os.environ.get("DISCORD_TOKEN")  # ดึงจาก Environment Variable
+TOKEN = os.environ.get("DISCORD_TOKEN")  # ✅ รับจาก Environment Variable (Render)
 CHANNEL_ID = 1372868979793596417         # ห้องส่งวิดีโอ
 LOG_CHANNEL_ID = 1378977947054247957     # ห้อง log
-COUNTDOWN_TIME = 10                      # วินาทีนับถอยหลัง
+COUNTDOWN_TIME = 10  # วินาทีนับถอยหลัง
 
 VIDEOS = {
     "กังฟูแพนด้า": "19p7U285U5KVkY-rHqq8QmApOzxdvc2aE",
@@ -137,6 +137,7 @@ class MenuButton(discord.ui.Button):
 
 @bot.command()
 async def เมนู(ctx):
+    """แสดงรายการวิดีโอที่มีให้เลือก"""
     view = MenuView(ctx)
     await ctx.send("📋 กรุณาเลือกชื่อเรื่องที่ต้องการ:", view=view)
 
