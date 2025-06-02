@@ -7,7 +7,7 @@ import time
 
 # ------------------------
 TOKEN = os.environ.get("DISCORD_TOKEN")  # ✅ รับจาก Environment Variable (Render)
-CHANNEL_ID = 1372868979793596417         # ห้องส่งวิดีโอ
+CHANNEL_ID = 1379036193525862460         # ห้องส่งวิดีโอ
 LOG_CHANNEL_ID = 1378977947054247957     # ห้อง log
 COUNTDOWN_TIME = 10  # วินาทีนับถอยหลัง
 
