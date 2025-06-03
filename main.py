@@ -145,4 +145,38 @@ async def เมนู(ctx):
     view = MenuView(ctx)
     await ctx.send("📋 กรุณาเลือกชื่อเรื่องที่ต้องการ:", view=view)
 
+#ระบบใหม่
+
+TARGET_CHANNEL_ID = 1379036193525862460  # เปลี่ยนเป็น ID ห้องที่คุณต้องการให้แสดงปุ่ม
+
+class MenuTrigger(discord.ui.View):
+    @discord.ui.button(label="📋 เปิดเมนูวิดีโอ", style=discord.ButtonStyle.success)
+    async def menu_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        channel = interaction.guild.get_channel(TARGET_CHANNEL_ID)
+        if channel:
+            # จำลองการพิมพ์ !เมนู
+            fake_ctx = await bot.get_context(interaction.message)
+            fake_ctx.channel = channel
+            fake_ctx.author = interaction.user
+            await fake_ctx.invoke(bot.get_command("เมนู"))
+        else:
+            await interaction.followup.send("❌ ไม่พบห้องที่กำหนด", ephemeral=True)
+
+@bot.command()
+async def แสดงปุ่มเมนู(ctx):
+    """ใช้สำหรับแอดมินเพื่อส่งปุ่มเปิดเมนูไปยังห้องเป้าหมาย"""
+    channel = bot.get_channel(TARGET_CHANNEL_ID)
+    if channel:
+        embed = discord.Embed(
+            title="🎬 เมนูวิดีโอฟรี",
+            description="กดปุ่มด้านล่างเพื่อเปิดเมนูเลือกวิดีโอ",
+            color=discord.Color.green()
+        )
+        await channel.send(embed=embed, view=MenuTrigger())
+        await ctx.send("✅ ส่งปุ่มเมนูไปยังห้องเรียบร้อยแล้ว", ephemeral=True)
+    else:
+        await ctx.send("❌ ไม่พบห้องเป้าหมาย", ephemeral=True)
+
+
 bot.run(TOKEN)
