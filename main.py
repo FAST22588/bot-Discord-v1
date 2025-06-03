@@ -10,7 +10,7 @@ from keep_alive import server_on
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = 1379036193525862460         #ห้องที่เมื่อส่งในกลุ่มจะไปห้องนั้น
 LOG_CHANNEL_ID = 1378977947054247957     #ห้องส่งประวัติการดู
-TARGET_CHANNEL_ID = 1379373448274382929  # ห้องที่ให้ใช้ !เมนู ได้
+TARGET_CHANNEL_ID = 1379036193525862460  # ห้องที่ให้ใช้ !เมนู ได้
 COUNTDOWN_TIME = 10
 
 VIDEOS = {
