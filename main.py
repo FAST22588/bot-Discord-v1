@@ -8,8 +8,8 @@ from keep_alive import server_on
 
 # ===== Configuration =====
 TOKEN = os.getenv("DISCORD_TOKEN")
-CHANNEL_ID = 1379036193525862460         #ห้องที่เมื่อส่งในกลุ่มจะไปห้องนั้น
-LOG_CHANNEL_ID = 1378977947054247957     #ห้องส่งประวัติการดู
+CHANNEL_ID = 1379036193525862460         # ห้องส่งคลิป
+LOG_CHANNEL_ID = 1378977947054247957     # ห้อง log
 TARGET_CHANNEL_ID = 1379036193525862460  # ห้องที่ให้ใช้ !เมนู ได้
 COUNTDOWN_TIME = 10
 
@@ -145,24 +145,22 @@ class MenuButton(discord.ui.Button):
 # ===== คำสั่งเมนู (จำกัดห้อง) =====
 @bot.command()
 async def เมนู(ctx):
-    """แสดงรายการวิดีโอที่มีให้เลือก"""
     if ctx.channel.id != TARGET_CHANNEL_ID:
         await ctx.send("❌ คำสั่งนี้ใช้ได้เฉพาะในห้องที่กำหนดเท่านั้น")
         return
     view = MenuView(ctx)
     await ctx.send("📋 กรุณาเลือกชื่อเรื่องที่ต้องการ:", view=view)
 
-# ===== ส่งปุ่มเมนูไปยังห้องเป้าหมาย =====
+# ===== ส่งปุ่มเมนูไปยังห้องเป้าหมาย (แก้เมนูซ้ำแล้ว) =====
 class MenuTrigger(discord.ui.View):
     @discord.ui.button(label="📋 เปิดเมนูวิดีโอ", style=discord.ButtonStyle.success)
     async def menu_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         channel = interaction.guild.get_channel(TARGET_CHANNEL_ID)
         if channel:
-            fake_ctx = await bot.get_context(interaction.message)
-            fake_ctx.channel = channel
-            fake_ctx.author = interaction.user
-            await fake_ctx.invoke(bot.get_command("เมนู"))
+            view = MenuView(interaction)
+            await channel.send("📋 กรุณาเลือกชื่อเรื่องที่ต้องการ:", view=view)
+            await interaction.followup.send("✅ เปิดเมนูในห้องที่กำหนดแล้ว", ephemeral=True)
         else:
             await interaction.followup.send("❌ ไม่พบห้องที่กำหนด", ephemeral=True)
 
