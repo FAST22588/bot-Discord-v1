@@ -1,5 +1,3 @@
-# main.py
-
 import discord
 from discord.ext import commands
 import gdown
@@ -8,9 +6,11 @@ import asyncio
 import time
 from keep_alive import server_on
 
+# ===== Configuration =====
 TOKEN = os.getenv("DISCORD_TOKEN")
-CHANNEL_ID = 1379036193525862460
-LOG_CHANNEL_ID = 1378977947054247957
+CHANNEL_ID = 1379036193525862460         #ห้องที่เมื่อส่งในกลุ่มจะไปห้องนั้น
+LOG_CHANNEL_ID = 1378977947054247957     #ห้องส่งประวัติการดู
+TARGET_CHANNEL_ID = 1379373448274382929  # ห้องที่ให้ใช้ !เมนู ได้
 COUNTDOWN_TIME = 10
 
 VIDEOS = {
@@ -23,9 +23,10 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ==== เรียก Flask Server =====
+# ===== Start Flask server for Render =====
 server_on()
 
+# ===== Delivery Options View =====
 class DeliveryChoice(discord.ui.View):
     def __init__(self, file_name, title, ctx):
         super().__init__(timeout=60)
@@ -64,10 +65,12 @@ class DeliveryChoice(discord.ui.View):
         if log_channel:
             await log_channel.send(f"👀 **{self.ctx.author.display_name}** กำลังดูเรื่อง **{self.title}** ทาง {method}")
 
+# ===== Bot Events =====
 @bot.event
 async def on_ready():
     print(f"✅ บอทออนไลน์: {bot.user}")
 
+# ===== ส่งคลิปตามชื่อเรื่อง =====
 @bot.command()
 async def ส่งคลิป(ctx, *, title: str = None):
     start_time = time.time()
@@ -104,6 +107,7 @@ async def ส่งคลิป(ctx, *, title: str = None):
         view=DeliveryChoice(FILE_NAME, title, ctx)
     )
 
+# ===== เมนูวิดีโอแบบปุ่ม =====
 class MenuView(discord.ui.View):
     def __init__(self, ctx):
         super().__init__(timeout=60)
@@ -129,7 +133,6 @@ class MenuButton(discord.ui.Button):
             return
 
         self.parent_view.used = True
-
         await interaction.response.defer()
         await self.ctx.invoke(self.ctx.bot.get_command("ส่งคลิป"), title=self.title)
 
@@ -139,10 +142,44 @@ class MenuButton(discord.ui.Button):
         await interaction.message.edit(view=self.parent_view)
         self.parent_view.stop()
 
+# ===== คำสั่งเมนู (จำกัดห้อง) =====
 @bot.command()
 async def เมนู(ctx):
     """แสดงรายการวิดีโอที่มีให้เลือก"""
+    if ctx.channel.id != TARGET_CHANNEL_ID:
+        await ctx.send("❌ คำสั่งนี้ใช้ได้เฉพาะในห้องที่กำหนดเท่านั้น")
+        return
     view = MenuView(ctx)
     await ctx.send("📋 กรุณาเลือกชื่อเรื่องที่ต้องการ:", view=view)
 
+# ===== ส่งปุ่มเมนูไปยังห้องเป้าหมาย =====
+class MenuTrigger(discord.ui.View):
+    @discord.ui.button(label="📋 เปิดเมนูวิดีโอ", style=discord.ButtonStyle.success)
+    async def menu_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        channel = interaction.guild.get_channel(TARGET_CHANNEL_ID)
+        if channel:
+            fake_ctx = await bot.get_context(interaction.message)
+            fake_ctx.channel = channel
+            fake_ctx.author = interaction.user
+            await fake_ctx.invoke(bot.get_command("เมนู"))
+        else:
+            await interaction.followup.send("❌ ไม่พบห้องที่กำหนด", ephemeral=True)
+
+@bot.command()
+async def แสดงปุ่มเมนู(ctx):
+    """ใช้สำหรับแอดมินเพื่อส่งปุ่มเปิดเมนูไปยังห้องเป้าหมาย"""
+    channel = bot.get_channel(TARGET_CHANNEL_ID)
+    if channel:
+        embed = discord.Embed(
+            title="🎬 เมนูวิดีโอฟรี",
+            description="กดปุ่มด้านล่างเพื่อเปิดเมนูเลือกวิดีโอ",
+            color=discord.Color.green()
+        )
+        await channel.send(embed=embed, view=MenuTrigger())
+        await ctx.send("✅ ส่งปุ่มเมนูไปยังห้องเรียบร้อยแล้ว")
+    else:
+        await ctx.send("❌ ไม่พบห้องเป้าหมาย")
+
+# ===== เริ่มบอท =====
 bot.run(TOKEN)
