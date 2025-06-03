@@ -137,12 +137,18 @@ class MenuButton(discord.ui.Button):
         self.parent_view = view
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user != self.ctx.author:
-            await interaction.response.send_message("❌ คุณไม่ได้เป็นคนเรียกเมนูนี้", ephemeral=True)
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(
+                f"❌ เมนูนี้สร้างโดย **{self.ctx.author.display_name}** เท่านั้น\nกรุณาพิมพ์ `!เมนู` เพื่อเรียกเมนูของคุณเอง",
+                ephemeral=True
+            )
             return
 
         if self.parent_view.used:
-            await interaction.response.send_message("⚠️ เลือกได้เพียง 1 ครั้ง หากต้องการเลือกใหม่ให้พิมพ์ `!เมนู` อีกครั้ง", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ เลือกได้เพียง 1 ครั้ง หากต้องการเลือกใหม่ให้พิมพ์ `!เมนู` อีกครั้ง",
+                ephemeral=True
+            )
             return
 
         self.parent_view.used = True
