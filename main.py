@@ -26,6 +26,9 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # ===== Start Flask server for Render =====
 server_on()
 
+# ===== ป้องกันการส่งซ้ำซ้อน =====
+user_processing = set()
+
 # ===== Delivery Options View =====
 class DeliveryChoice(discord.ui.View):
     def __init__(self, file_name, title, ctx):
@@ -73,39 +76,49 @@ async def on_ready():
 # ===== ส่งคลิปตามชื่อเรื่อง =====
 @bot.command()
 async def ส่งคลิป(ctx, *, title: str = None):
+    if ctx.author.id in user_processing:
+        await ctx.send("⏳ กรุณารอให้ส่งคลิปก่อนหน้าสำเร็จก่อน แล้วค่อยลองใหม่")
+        return
+
+    user_processing.add(ctx.author.id)  # เริ่มป้องกันซ้ำ
+
     start_time = time.time()
 
-    if not title:
-        available_titles = " | ".join(VIDEOS.keys())
-        await ctx.send(f"❗ กรุณาใส่ชื่อเรื่อง เช่น: `!ส่งคลิป กังฟูแพนด้า`\n📽 เรื่องที่มีให้: {available_titles}")
-        return
+    try:
+        if not title:
+            available_titles = " | ".join(VIDEOS.keys())
+            await ctx.send(f"❗ กรุณาใส่ชื่อเรื่อง เช่น: `!ส่งคลิป กังฟูแพนด้า`\n📽 เรื่องที่มีให้: {available_titles}")
+            return
 
-    title = title.strip()
+        title = title.strip()
 
-    if title not in VIDEOS:
-        available_titles = " | ".join(VIDEOS.keys())
-        await ctx.send(f"❌ ไม่พบชื่อเรื่อง: **{title}**\n📽 กรุณาเลือกจาก: {available_titles}")
-        return
+        if title not in VIDEOS:
+            available_titles = " | ".join(VIDEOS.keys())
+            await ctx.send(f"❌ ไม่พบชื่อเรื่อง: **{title}**\n📽 กรุณาเลือกจาก: {available_titles}")
+            return
 
-    msg = await ctx.send(f"⏳ กำลังเตรียมส่ง **{title}**...")
+        msg = await ctx.send(f"⏳ กำลังเตรียมส่ง **{title}**...")
 
-    file_id = VIDEOS[title]
-    url = f"https://drive.google.com/uc?id={file_id}"
-    FILE_NAME = "video.mp4"
-    gdown.download(url, FILE_NAME, quiet=False)
+        file_id = VIDEOS[title]
+        url = f"https://drive.google.com/uc?id={file_id}"
+        FILE_NAME = "video.mp4"
+        gdown.download(url, FILE_NAME, quiet=False)
 
-    elapsed = time.time() - start_time
-    remaining = max(0, int(COUNTDOWN_TIME - elapsed))
+        elapsed = time.time() - start_time
+        remaining = max(0, int(COUNTDOWN_TIME - elapsed))
 
-    for i in range(remaining, 0, -1):
-        await msg.edit(content=f"⏳ กำลังส่ง **{title}** ใน {i} วินาที...")
-        await asyncio.sleep(1)
-    await msg.delete()
+        for i in range(remaining, 0, -1):
+            await msg.edit(content=f"⏳ กำลังส่ง **{title}** ใน {i} วินาที...")
+            await asyncio.sleep(1)
+        await msg.delete()
 
-    await ctx.send(
-        f"📌 ต้องการให้ส่งคลิป **{title}** ทางไหน?",
-        view=DeliveryChoice(FILE_NAME, title, ctx)
-    )
+        await ctx.send(
+            f"📌 ต้องการให้ส่งคลิป **{title}** ทางไหน?",
+            view=DeliveryChoice(FILE_NAME, title, ctx)
+        )
+
+    finally:
+        user_processing.discard(ctx.author.id)  # ปลดล็อกไม่ให้ซ้ำ
 
 # ===== เมนูวิดีโอแบบปุ่ม =====
 class MenuView(discord.ui.View):
@@ -151,7 +164,7 @@ async def เมนู(ctx):
     view = MenuView(ctx)
     await ctx.send("📋 กรุณาเลือกชื่อเรื่องที่ต้องการ:", view=view)
 
-# ===== ส่งปุ่มเมนูไปยังห้องเป้าหมาย (แก้เมนูซ้ำแล้ว) =====
+# ===== ส่งปุ่มเมนูไปยังห้องเป้าหมาย =====
 class MenuTrigger(discord.ui.View):
     @discord.ui.button(label="📋 เปิดเมนูวิดีโอ", style=discord.ButtonStyle.success)
     async def menu_button(self, interaction: discord.Interaction, button: discord.ui.Button):
