@@ -39,6 +39,13 @@ class DeliveryChoice(discord.ui.View):
 
     @discord.ui.button(label="📤 ส่งในกลุ่ม", style=discord.ButtonStyle.primary)
     async def send_to_channel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(
+                f"❌ ปุ่มนี้สามารถใช้งานได้โดย **{self.ctx.author.display_name}** เท่านั้น",
+                ephemeral=True
+            )
+            return
+
         await interaction.response.defer()
         video_channel = bot.get_channel(CHANNEL_ID)
         if video_channel:
@@ -49,6 +56,13 @@ class DeliveryChoice(discord.ui.View):
 
     @discord.ui.button(label="📩 ส่งทาง DM", style=discord.ButtonStyle.secondary)
     async def send_to_dm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(
+                f"❌ ปุ่มนี้สามารถใช้งานได้โดย **{self.ctx.author.display_name}** เท่านั้น",
+                ephemeral=True
+            )
+            return
+
         await interaction.response.defer()
         try:
             await interaction.user.send(f"🎬 เรื่อง: **{self.title}**", file=discord.File(self.file_name))
